@@ -152,12 +152,14 @@ public class CygnusGroupingRulesTest {
         String ruleRegex = "/someServicePath";
         String ruleDestination = "new_dest";
         String ruleServicePath = "/new_svc_path";
+        String ruleService = "someService";
         CygnusGroupingRules cygnusGroupingRules = createSingleRuleGroupingRules(
-                ruleFields, ruleRegex, ruleDestination, ruleServicePath, "getMatchingRule");
+                ruleFields, ruleRegex, ruleDestination, ruleServicePath, ruleService, "getMatchingRule");
+        String service = "someService";
         String servicePath = "/someServicePath";
         String entityId = "someId";
         String entityType = "someType";
-        CygnusGroupingRule rule = cygnusGroupingRules.getMatchingRule(servicePath, entityId, entityType);
+        CygnusGroupingRule rule = cygnusGroupingRules.getMatchingRule(service, servicePath, entityId, entityType);
         
         try {
             assertEquals(ruleDestination, rule.getDestination());
@@ -186,12 +188,14 @@ public class CygnusGroupingRulesTest {
         String ruleRegex = "/someServicePathsomeId";
         String ruleDestination = "new_dest";
         String ruleServicePath = "/new_svc_path";
+        String ruleService = "someService";
         CygnusGroupingRules cygnusGroupingRules = createSingleRuleGroupingRules(
-                ruleFields, ruleRegex, ruleDestination, ruleServicePath, "getMatchingRule");
+                ruleFields, ruleRegex, ruleDestination, ruleServicePath, ruleService, "getMatchingRule");
+        String service = "someService";
         String servicePath = "/someServicePath";
         String entityId = "someId";
         String entityType = "someType";
-        CygnusGroupingRule rule = cygnusGroupingRules.getMatchingRule(servicePath, entityId, entityType);
+        CygnusGroupingRule rule = cygnusGroupingRules.getMatchingRule(service, servicePath, entityId, entityType);
         
         try {
             assertEquals(ruleDestination, rule.getDestination());
@@ -221,12 +225,14 @@ public class CygnusGroupingRulesTest {
         String ruleRegex = "/someServicePathsomeIdsomeType";
         String ruleDestination = "new_dest";
         String ruleServicePath = "/new_svc_path";
+        String ruleService = "someService";
         CygnusGroupingRules cygnusGroupingRules = createSingleRuleGroupingRules(
-                ruleFields, ruleRegex, ruleDestination, ruleServicePath, "getMatchingRule");
+                ruleFields, ruleRegex, ruleDestination, ruleServicePath, ruleService, "getMatchingRule");
+        String service = "someService";
         String servicePath = "/someServicePath";
         String entityId = "someId";
         String entityType = "someType";
-        CygnusGroupingRule rule = cygnusGroupingRules.getMatchingRule(servicePath, entityId, entityType);
+        CygnusGroupingRule rule = cygnusGroupingRules.getMatchingRule(service, servicePath, entityId, entityType);
         
         try {
             assertEquals(ruleDestination, rule.getDestination());
@@ -254,15 +260,17 @@ public class CygnusGroupingRulesTest {
         String ruleRegex1 = "/someServicePath1";
         String ruleDestination1 = "new_dest1";
         String ruleServicePath1 = "/new_svc_path1";
+        String ruleService1 = "someService1";
         CygnusGroupingRules cygnusGroupingRules = createSingleRuleGroupingRules(
-                ruleFields1, ruleRegex1, ruleDestination1, ruleServicePath1, "addRule");
+                ruleFields1, ruleRegex1, ruleDestination1, ruleServicePath1, ruleService1, "addRule");
         ArrayList<String> ruleFields2 = new ArrayList<String>();
         ruleFields2.add("servicePath");
         String ruleRegex2 = "/someServicePath2";
         String ruleDestination2 = "new_dest2";
         String ruleServicePath2 = "/new_svc_path2";
+        String ruleService2 = "someService2";
         CygnusGroupingRule cygnusGroupingRule = new CygnusGroupingRule(createJsonRule(ruleFields2, ruleRegex2,
-                ruleDestination2, ruleServicePath2));
+                ruleDestination2, ruleServicePath2, ruleService2));
         cygnusGroupingRules.addRule(cygnusGroupingRule);
         
         try {
@@ -288,15 +296,17 @@ public class CygnusGroupingRulesTest {
         String ruleRegex1 = "/someServicePath1";
         String ruleDestination1 = "new_dest1";
         String ruleServicePath1 = "/new_svc_path1";
+        String ruleService1 = "someService1";
         CygnusGroupingRules cygnusGroupingRules = createSingleRuleGroupingRules(
-                ruleFields1, ruleRegex1, ruleDestination1, ruleServicePath1, "addRule");
+                ruleFields1, ruleRegex1, ruleDestination1, ruleServicePath1, ruleService1, "addRule");
         ArrayList<String> ruleFields2 = new ArrayList<String>();
         ruleFields2.add("servicePath");
         String ruleRegex2 = "/someServicePath2";
         String ruleDestination2 = "new_dest2";
         String ruleServicePath2 = "/new_svc_path2";
+        String ruleService2 = "someService2";
         CygnusGroupingRule cygnusGroupingRule = new CygnusGroupingRule(createJsonRule(ruleFields2, ruleRegex2,
-                ruleDestination2, ruleServicePath2));
+                ruleDestination2, ruleServicePath2, ruleService2));
         long prevLastIndex = cygnusGroupingRules.getLastIndex();
         cygnusGroupingRules.addRule(cygnusGroupingRule);
         long currLastIndex = cygnusGroupingRules.getLastIndex();
@@ -326,8 +336,9 @@ public class CygnusGroupingRulesTest {
         String ruleRegex = "/someServicePath";
         String ruleDestination = "new_dest";
         String ruleServicePath = "/new_svc_path";
+        String ruleService = "someService";
         CygnusGroupingRules cygnusGroupingRules = createSingleRuleGroupingRules(
-                ruleFields, ruleRegex, ruleDestination, ruleServicePath, "deleteRule");
+                ruleFields, ruleRegex, ruleDestination, ruleServicePath, ruleService, "deleteRule");
         cygnusGroupingRules.deleteRule(1);
         
         try {
@@ -353,15 +364,17 @@ public class CygnusGroupingRulesTest {
         String ruleRegex1 = "/someServicePath1";
         String ruleDestination1 = "new_dest1";
         String ruleServicePath1 = "/new_svc_path1";
+        String ruleService1 = "someService1";
         CygnusGroupingRules cygnusGroupingRules = createSingleRuleGroupingRules(
-                ruleFields1, ruleRegex1, ruleDestination1, ruleServicePath1, "addRule");
+                ruleFields1, ruleRegex1, ruleDestination1, ruleServicePath1, ruleService1, "addRule");
         ArrayList<String> ruleFields2 = new ArrayList<String>();
         ruleFields2.add("servicePath");
         String ruleRegex2 = "/someServicePath2";
         String ruleDestination2 = "new_dest2";
         String ruleServicePath2 = "/new_svc_path2";
+        String ruleService2 = "someService2";
         CygnusGroupingRule cygnusGroupingRule = new CygnusGroupingRule(createJsonRule(ruleFields2, ruleRegex2,
-                ruleDestination2, ruleServicePath2));
+                ruleDestination2, ruleServicePath2, ruleService2));
         cygnusGroupingRules.updateRule(1, cygnusGroupingRule);
         CygnusGroupingRule updatedRule = cygnusGroupingRules.getRules().get(0);
         
@@ -380,7 +393,7 @@ public class CygnusGroupingRulesTest {
     } // testUpdateRule
     
     private JSONObject createJsonRule(ArrayList<String> fields, String regex, String destination,
-            String fiwareServicePath) {
+            String fiwareServicePath, String fiwareService) {
         JSONObject jsonRule = new JSONObject();
         jsonRule.put("id", (long) 1);
         JSONArray jsonArray = new JSONArray();
@@ -391,6 +404,7 @@ public class CygnusGroupingRulesTest {
         
         jsonRule.put("fields", jsonArray);
         jsonRule.put("regex", regex);
+        jsonRule.put("fiware_service", fiwareService);
         jsonRule.put("fiware_service_path", fiwareServicePath);
         jsonRule.put("destination", destination);
         return jsonRule;
@@ -405,8 +419,8 @@ public class CygnusGroupingRulesTest {
     } // createJsonRules
     
     private CygnusGroupingRules createSingleRuleGroupingRules(ArrayList<String> fields, String regex,
-            String destination, String fiwareServicePath, String method) {
-        JSONObject jsonRule = createJsonRule(fields, regex, destination, fiwareServicePath);
+            String destination, String fiwareServicePath, String fiwareService, String method) {
+        JSONObject jsonRule = createJsonRule(fields, regex, destination, fiwareServicePath, fiwareService);
         JSONObject jsonRules = createJsonRules(jsonRule);
         String groupingRulesStr = jsonRules.toJSONString().replaceAll("\\\\", "");
         File file;

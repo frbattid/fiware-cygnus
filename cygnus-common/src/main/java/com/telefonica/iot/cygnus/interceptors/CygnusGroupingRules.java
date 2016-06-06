@@ -111,18 +111,19 @@ public class CygnusGroupingRules {
     
     /**
      * Gets the rule matching the given string.
+     * @param service
      * @param servicePath
      * @param entityId
      * @param entityType
      * @return The grouping rule matching the give string
      */
-    public CygnusGroupingRule getMatchingRule(String servicePath, String entityId, String entityType) {
+    public CygnusGroupingRule getMatchingRule(String service, String servicePath, String entityId, String entityType) {
         if (groupingRules == null) {
             return null;
         } // if
         
         for (CygnusGroupingRule rule : groupingRules) {
-            String s = concatenateFields(rule.getFields(), servicePath, entityId, entityType);
+            String s = concatenateFields(rule.getFields(), service, servicePath, entityId, entityType);
             Matcher matcher = rule.getPattern().matcher(s);
 
             if (matcher.matches()) {
@@ -133,17 +134,19 @@ public class CygnusGroupingRules {
         return null;
     } // getMatchingRule
     
-    private String concatenateFields(ArrayList<String> fields, String servicePath, String entityId,
+    private String concatenateFields(ArrayList<String> fields, String service, String servicePath, String entityId,
             String entityType) {
         String concat = "";
 
         for (String field : fields) {
-            if (field.equals("entityId")) {
+            if (field.equals("entityId") || field.equals("ENTITY_ID")) {
                 concat += entityId;
-            } else if (field.equals("entityType")) {
+            } else if (field.equals("entityType") || field.equals("ENTITY_TYPE")) {
                 concat += entityType;
-            } else if (field.equals("servicePath")) {
+            } else if (field.equals("servicePath") || field.equals("SERVICE_PATH")) {
                 concat += servicePath;
+            } else if (field.equals("service") || field.equals("SERVICE")) {
+                concat += service;
             } // if else
         } // for
         
