@@ -1,3 +1,3 @@
 - [cygnus-ngsi] [hardening] Do configurable the accepted resolutions in NGSISTHSink (#940)
 - [cygnus-common] [hardening] Add /admin/configuration/agent/path/to/agent.conf route to API (#893)
-- [cygnus-ngsi] [feature] Add support for modifying the service when using grouping rules
+- [cygnus-ngsi] [feature] Add support for modifying the service when using grouping rules (#1075)
