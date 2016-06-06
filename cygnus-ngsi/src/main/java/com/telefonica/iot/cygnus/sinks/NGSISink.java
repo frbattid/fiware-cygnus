@@ -547,22 +547,24 @@ public abstract class NGSISink extends CygnusSink implements Configurable {
 
         private void accumulateByService(Map<String, String> headers, NotifyContextRequest notification) {
             Long recvTimeTs = new Long(headers.get(NGSIConstants.FLUME_HEADER_TIMESTAMP));
-            String service = headers.get(CommonConstants.HEADER_FIWARE_SERVICE);
-            String destination = service;
 
             if (!enableGrouping) {
+                String[] notifiedServices = headers.get(CommonConstants.HEADER_FIWARE_SERVICE).split(",");
                 String[] notifiedServicePaths = headers.get(CommonConstants.HEADER_FIWARE_SERVICE_PATH).split(",");
 
                 for (int i = 0; i < notifiedServicePaths.length; i++) {
+                    String destination = notifiedServices[i];
                     NGSIEvent cygnusEvent = new NGSIEvent(
                             recvTimeTs, destination, notifiedServicePaths[i], null, null,
                             notification.getContextResponses().get(i).getContextElement());
                     batch.addEvent(destination, cygnusEvent);
                 } // for
             } else {
+                String[] groupedServices = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_SERVICES).split(",");
                 String[] groupedServicePaths = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_SERVICE_PATHS).split(",");
 
                 for (int i = 0; i < groupedServicePaths.length; i++) {
+                    String destination = groupedServices[i];
                     NGSIEvent cygnusEvent = new NGSIEvent(
                             recvTimeTs, destination, groupedServicePaths[i], null, null,
                             notification.getContextResponses().get(i).getContextElement());
@@ -573,25 +575,26 @@ public abstract class NGSISink extends CygnusSink implements Configurable {
 
         private void accumulateByServicePath(Map<String, String> headers, NotifyContextRequest notification) {
             Long recvTimeTs = new Long(headers.get(NGSIConstants.FLUME_HEADER_TIMESTAMP));
-            String service = headers.get(CommonConstants.HEADER_FIWARE_SERVICE);
 
             if (!enableGrouping) {
+                String[] notifiedServices = headers.get(CommonConstants.HEADER_FIWARE_SERVICE).split(",");
                 String[] notifiedServicePaths = headers.get(CommonConstants.HEADER_FIWARE_SERVICE_PATH).split(",");
 
                 for (int i = 0; i < notifiedServicePaths.length; i++) {
-                    String destination = service + "_" + notifiedServicePaths[i];
+                    String destination = notifiedServices[i] + "_" + notifiedServicePaths[i];
                     NGSIEvent cygnusEvent = new NGSIEvent(
-                            recvTimeTs, service, notifiedServicePaths[i], null, null,
+                            recvTimeTs, notifiedServices[i], notifiedServicePaths[i], null, null,
                             notification.getContextResponses().get(i).getContextElement());
                     batch.addEvent(destination, cygnusEvent);
                 } // for
             } else {
+                String[] groupedServices = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_SERVICES).split(",");
                 String[] groupedServicePaths = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_SERVICE_PATHS).split(",");
 
                 for (int i = 0; i < groupedServicePaths.length; i++) {
-                    String destination = service + "_" + groupedServicePaths[i];
+                    String destination = groupedServices[i] + "_" + groupedServicePaths[i];
                     NGSIEvent cygnusEvent = new NGSIEvent(
-                            recvTimeTs, service, groupedServicePaths[i], null, null,
+                            recvTimeTs, groupedServices[i], groupedServicePaths[i], null, null,
                             notification.getContextResponses().get(i).getContextElement());
                     batch.addEvent(destination, cygnusEvent);
                 } // for
@@ -600,27 +603,29 @@ public abstract class NGSISink extends CygnusSink implements Configurable {
 
         private void accumulateByEntity(Map<String, String> headers, NotifyContextRequest notification) {
             Long recvTimeTs = new Long(headers.get(NGSIConstants.FLUME_HEADER_TIMESTAMP));
-            String service = headers.get(CommonConstants.HEADER_FIWARE_SERVICE);
 
             if (!enableGrouping) {
+                String[] notifiedServices = headers.get(CommonConstants.HEADER_FIWARE_SERVICE).split(",");
                 String[] notifiedServicePaths = headers.get(CommonConstants.HEADER_FIWARE_SERVICE_PATH).split(",");
                 String[] notifiedEntities = headers.get(NGSIConstants.FLUME_HEADER_NOTIFIED_ENTITIES).split(",");
 
                 for (int i = 0; i < notifiedEntities.length; i++) {
-                    String destination = service + "_" + notifiedServicePaths[i] + "_" + notifiedEntities[i];
+                    String destination = notifiedServices[i] + "_" + notifiedServicePaths[i] + "_"
+                            + notifiedEntities[i];
                     NGSIEvent cygnusEvent = new NGSIEvent(
-                            recvTimeTs, service, notifiedServicePaths[i], notifiedEntities[i], null,
+                            recvTimeTs, notifiedServices[i], notifiedServicePaths[i], notifiedEntities[i], null,
                             notification.getContextResponses().get(i).getContextElement());
                     batch.addEvent(destination, cygnusEvent);
                 } // for
             } else {
+                String[] groupedServices = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_SERVICES).split(",");
                 String[] groupedServicePaths = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_SERVICE_PATHS).split(",");
                 String[] groupedEntities = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_ENTITIES).split(",");
 
                 for (int i = 0; i < groupedEntities.length; i++) {
-                    String destination = service + "_" + groupedServicePaths[i] + "_" + groupedEntities[i];
+                    String destination = groupedServices[i] + "_" + groupedServicePaths[i] + "_" + groupedEntities[i];
                     NGSIEvent cygnusEvent = new NGSIEvent(
-                            recvTimeTs, service, groupedServicePaths[i], groupedEntities[i], null,
+                            recvTimeTs, groupedServices[i], groupedServicePaths[i], groupedEntities[i], null,
                             notification.getContextResponses().get(i).getContextElement());
                     batch.addEvent(destination, cygnusEvent);
                 } // for
@@ -629,10 +634,10 @@ public abstract class NGSISink extends CygnusSink implements Configurable {
 
         private void accumulateByAttribute(Map<String, String> headers, NotifyContextRequest notification) {
             Long recvTimeTs = new Long(headers.get(NGSIConstants.FLUME_HEADER_TIMESTAMP));
-            String service = headers.get(CommonConstants.HEADER_FIWARE_SERVICE);
             ArrayList<ContextElementResponse> contextElementResponses = notification.getContextResponses();
 
             if (!enableGrouping) {
+                String[] notifiedServices = headers.get(CommonConstants.HEADER_FIWARE_SERVICE).split(",");
                 String[] notifiedServicePaths = headers.get(CommonConstants.HEADER_FIWARE_SERVICE_PATH).split(",");
                 String[] notifiedEntities = headers.get(NGSIConstants.FLUME_HEADER_NOTIFIED_ENTITIES).split(",");
 
@@ -641,15 +646,16 @@ public abstract class NGSISink extends CygnusSink implements Configurable {
                     ArrayList<ContextAttribute> attrs = contextElement.getAttributes();
 
                     for (ContextAttribute attr : attrs) {
-                        String destination = service + "_" + notifiedServicePaths[i] + "_" + notifiedEntities[i]
-                                + "_" + attr.getName();
+                        String destination = notifiedServices[i] + "_" + notifiedServicePaths[i] + "_"
+                                + notifiedEntities[i] + "_" + attr.getName();
                         NGSIEvent cygnusEvent = new NGSIEvent(
-                                recvTimeTs, service, notifiedServicePaths[i], notifiedEntities[i],
+                                recvTimeTs, notifiedServices[i], notifiedServicePaths[i], notifiedEntities[i],
                                 attr.getName(), contextElement.filter(attr.getName()));
                         batch.addEvent(destination, cygnusEvent);
                     } // for
                 } // for
             } else {
+                String[] groupedServices = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_SERVICES).split(",");
                 String[] groupedServicePaths = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_SERVICE_PATHS).split(",");
                 String[] groupedEntities = headers.get(NGSIConstants.FLUME_HEADER_GROUPED_ENTITIES).split(",");
 
@@ -658,10 +664,10 @@ public abstract class NGSISink extends CygnusSink implements Configurable {
                     ArrayList<ContextAttribute> attrs = contextElement.getAttributes();
 
                     for (ContextAttribute attr : attrs) {
-                        String destination = service + "_" + groupedServicePaths[i] + "_" + groupedEntities[i]
-                                + "_" + attr.getName();
+                        String destination = groupedServices[i] + "_" + groupedServicePaths[i] + "_"
+                                + groupedEntities[i] + "_" + attr.getName();
                         NGSIEvent cygnusEvent = new NGSIEvent(
-                                recvTimeTs, service, groupedServicePaths[i], groupedEntities[i],
+                                recvTimeTs, groupedServices[i], groupedServicePaths[i], groupedEntities[i],
                                 attr.getName(), contextElement.filter(attr.getName()));
                         batch.addEvent(destination, cygnusEvent);
                     } // for
