@@ -36,6 +36,7 @@ public final class NGSIConstants {
     public static final String FLUME_HEADER_NOTIFIED_ENTITIES      = "notified-entities";
     public static final String FLUME_HEADER_GROUPED_ENTITIES       = "grouped-entities";
     public static final String FLUME_HEADER_TIMESTAMP              = "timestamp";
+    public static final String FLUME_HEADER_GROUPED_SERVICES       = "grouped-services";
 
     // Common fields for sinks
     public static final String RECV_TIME_TS        = "recvTimeTs";
