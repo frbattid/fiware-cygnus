@@ -93,11 +93,31 @@ public class CygnusGroupingRule {
     } // destination
 
     /**
+     * Gets the rule's newFiwareService.
+     * @return The rule's newFiwareService.
+     */
+    public String getNewFiwareService() {
+        String service = (String) jsonRule.get("fiware_service");
+        
+        if (service == null) {
+            return (String) jsonRule.get("service");
+        } else {
+            return service;
+        } // if else
+    } // getNewFiwareService
+    
+    /**
      * Gets the rule's newFiwareServicePath.
      * @return The rule's newFiwareServicePath.
      */
     public String getNewFiwareServicePath() {
-        return (String) jsonRule.get("fiware_service_path");
+        String servicePath = (String) jsonRule.get("fiware_service_path");
+        
+        if (servicePath == null) {
+            return (String) jsonRule.get("service_path");
+        } else {
+            return servicePath;
+        } // if else
     } // getNewFiwareServicePath
     
     /**
@@ -111,12 +131,14 @@ public class CygnusGroupingRule {
         boolean containsRegex = false;
         boolean containsDestination = false;
         boolean containsFiwareServicePath = false;
+        boolean containsFiwareService = false;
         boolean containsExtraFields = false;
         boolean servicePathStartsWithSlash = false;
         int fieldsSize = 0;
         int regexLength = 0;
         int destinationLength = 0;
         int fiwareServicePathLength = 0;
+        int fiwareServiceLength = 0;
         
         // iterate on the fields
         Iterator it = jsonRule.keySet().iterator();
@@ -137,18 +159,30 @@ public class CygnusGroupingRule {
                 containsFiwareServicePath = true;
                 servicePathStartsWithSlash = ((String) jsonRule.get("fiware_service_path")).startsWith("/");
                 fiwareServicePathLength = ((String) jsonRule.get("fiware_service_path")).length();
+            } else if (field.equals("service_path")) {
+                containsFiwareServicePath = true;
+                servicePathStartsWithSlash = ((String) jsonRule.get("service_path")).startsWith("/");
+                fiwareServicePathLength = ((String) jsonRule.get("service_path")).length();
+            } else if (field.equals("fiware_service")) {
+                containsFiwareService = true;
+                fiwareServiceLength = ((String) jsonRule.get("fiware_service")).length();
+            } else if (field.equals("service")) {
+                containsFiwareService = true;
+                fiwareServiceLength = ((String) jsonRule.get("service")).length();
             } else {
                 containsExtraFields = true;
             } // if else
         } // while
         
         // check if the rule contains all the required fields
-        if (!containsFields || !containsRegex || !containsDestination || !containsFiwareServicePath) {
+        if (!containsFields || !containsRegex || !containsDestination || !containsFiwareServicePath
+                || !containsFiwareService) {
             return 1;
         } // if
         
         // check if the rule has any empty field
-        if (fieldsSize == 0 || regexLength == 0 || destinationLength == 0 || fiwareServicePathLength == 0) {
+        if (fieldsSize == 0 || regexLength == 0 || destinationLength == 0 || fiwareServicePathLength == 0
+                || fiwareServiceLength == 0) {
             return 2;
         } // if
         

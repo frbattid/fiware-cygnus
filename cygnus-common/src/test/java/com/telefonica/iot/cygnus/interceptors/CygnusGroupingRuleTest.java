@@ -143,6 +143,7 @@ public class CygnusGroupingRuleTest {
         fields.add("entityId");
         jsonRule.put("fields", fields);
         jsonRule.put("regex", "room1");
+        jsonRule.put("fiware_service", "default");
         jsonRule.put("fiware_service_path", "/rooms");
         jsonRule.put("destination", "all_rooms");
         return jsonRule;
