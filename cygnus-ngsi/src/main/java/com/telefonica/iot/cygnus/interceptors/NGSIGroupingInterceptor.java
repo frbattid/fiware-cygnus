@@ -90,6 +90,7 @@ public class NGSIGroupingInterceptor implements Interceptor {
             String body = new String(event.getBody());
 
             // get some original header values
+            String fiwareService = headers.get(CommonConstants.HEADER_FIWARE_SERVICE);
             String fiwareServicePath = headers.get(CommonConstants.HEADER_FIWARE_SERVICE_PATH);
 
             // parse the original body; this part may be unnecessary if notifications are parsed at the source only once
@@ -105,6 +106,7 @@ public class NGSIGroupingInterceptor implements Interceptor {
             } // try catch
 
             // iterate on the context responses and notified service paths
+            ArrayList<String> groupedServices = new ArrayList<String>();
             ArrayList<String> defaultDestinations = new ArrayList<String>();
             ArrayList<String> groupedDestinations = new ArrayList<String>();
             ArrayList<String> groupedServicePaths = new ArrayList<String>();
@@ -123,17 +125,19 @@ public class NGSIGroupingInterceptor implements Interceptor {
                 NotifyContextRequest.ContextElement contextElement = contextElementResponse.getContextElement();
 
                 // get the matching rule
-                CygnusGroupingRule matchingRule = groupingRules.getMatchingRule(fiwareServicePath,
+                CygnusGroupingRule matchingRule = groupingRules.getMatchingRule(fiwareService, fiwareServicePath,
                         contextElement.getId(), contextElement.getType());
 
                 if (matchingRule == null) {
+                    groupedServices.add(fiwareService);
                     groupedDestinations.add(contextElement.getId()
                             + (enableNewEncoding ? CommonConstants.INTERNAL_CONCATENATOR : "_")
                             + contextElement.getType());
                     groupedServicePaths.add(splitedNotifiedServicePaths[i]);
                 } else {
-                    groupedDestinations.add((String) matchingRule.getDestination());
-                    groupedServicePaths.add((String) matchingRule.getNewFiwareServicePath());
+                    groupedServices.add(matchingRule.getNewFiwareService());
+                    groupedDestinations.add(matchingRule.getDestination());
+                    groupedServicePaths.add(matchingRule.getNewFiwareServicePath());
                 } // if else
 
                 defaultDestinations.add(contextElement.getId()
@@ -154,6 +158,10 @@ public class NGSIGroupingInterceptor implements Interceptor {
             headers.put(NGSIConstants.FLUME_HEADER_GROUPED_SERVICE_PATHS, groupedServicePathsStr);
             LOGGER.debug("Adding flume event header (name=" + NGSIConstants.FLUME_HEADER_GROUPED_SERVICE_PATHS
                     + ", value=" + groupedServicePathsStr + ")");
+            String groupedServicesStr = CommonUtils.toString(groupedServices);
+            headers.put(NGSIConstants.FLUME_HEADER_GROUPED_SERVICES, groupedServicesStr);
+            LOGGER.debug("Adding flume event header (name=" + NGSIConstants.FLUME_HEADER_GROUPED_SERVICES
+                    + ", value=" + groupedServicesStr + ")");
             event.setHeaders(headers);
             LOGGER.debug("Event put in the channel, id=" + event.hashCode());
             return event;
