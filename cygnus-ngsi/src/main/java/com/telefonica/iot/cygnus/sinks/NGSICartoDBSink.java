@@ -18,6 +18,7 @@
 package com.telefonica.iot.cygnus.sinks;
 
 import com.telefonica.iot.cygnus.backends.cartodb.CartoDBBackendImpl;
+import com.telefonica.iot.cygnus.containers.AttributeMappings.Mapping;
 import com.telefonica.iot.cygnus.containers.NotifyContextRequest;
 import com.telefonica.iot.cygnus.containers.NotifyContextRequest.ContextAttribute;
 import com.telefonica.iot.cygnus.errors.CygnusBadConfiguration;
@@ -277,6 +278,7 @@ public class NGSICartoDBSink extends NGSISink {
     protected class CartoDBAggregator {
         
         private LinkedHashMap<String, ArrayList<String>> aggregation;
+        private LinkedHashMap<String, String> fieldTypes;
         private String service;
         private String servicePath;
         private String entity;
@@ -294,7 +296,7 @@ public class NGSICartoDBSink extends NGSISink {
         
         /**
          * Gets PostgreSQL-like rows from the aggregation.
-         * @return
+         * @return PostgreSQL-like rows from the aggregation
          */
         public String getRows() {
             String rows = "";
@@ -334,7 +336,7 @@ public class NGSICartoDBSink extends NGSISink {
 
         /**
          * Gets PostgreSLQ-like fields from the aggregation.
-         * @return
+         * @return PostgreSLQ-like fields from the aggregation
          */
         public String getFields() {
             String fields = "(";
@@ -353,6 +355,29 @@ public class NGSICartoDBSink extends NGSISink {
             fields += ")";
             return fields.toLowerCase();
         } // getFields
+        
+        /**
+         * Gets PostgreSLQ-like typed fields from the aggregation.
+         * @return PostgreSLQ-like typed fields from the aggregation
+         */
+        public String getTypedFields() {
+            String typedFields = "(";
+            boolean first = true;
+            
+            for (String attrName : fieldTypes.keySet()) {
+                String attrType = fieldTypes.get(attrName);
+
+                if (first) {
+                    typedFields += attrName + " " + attrType;
+                    first = false;
+                } else {
+                    typedFields += "," + attrName + " " + attrType;
+                } // if else
+            }
+            
+            typedFields += ")";
+            return typedFields;
+        } // getTypedFields
         
         /**
          * Initializes an aggregation.
@@ -374,9 +399,18 @@ public class NGSICartoDBSink extends NGSISink {
             aggregation.put(NGSIConstants.ENTITY_ID, new ArrayList<String>());
             aggregation.put(NGSIConstants.ENTITY_TYPE, new ArrayList<String>());
             aggregation.put(NGSIConstants.THE_GEOM, new ArrayList<String>());
+            fieldTypes = new LinkedHashMap<String, String>();
+            fieldTypes.put(NGSIConstants.RECV_TIME, "text");
+            fieldTypes.put(NGSIConstants.FIWARE_SERVICE_PATH, "text");
+            fieldTypes.put(NGSIConstants.ENTITY_ID, "text");
+            fieldTypes.put(NGSIConstants.ENTITY_TYPE, "text");
+            fieldTypes.put(NGSIConstants.THE_GEOM, "text");
             
             // iterate on all this context element attributes, if there are attributes
-            ArrayList<ContextAttribute> contextAttributes = event.getContextElement().getAttributes();
+            NotifyContextRequest.ContextElement contextElement = event.getContextElement();
+            String entityId = contextElement.getId();
+            String entityType = contextElement.getType();
+            ArrayList<ContextAttribute> contextAttributes = contextElement.getAttributes();
 
             if (contextAttributes == null || contextAttributes.isEmpty()) {
                 return;
@@ -390,8 +424,23 @@ public class NGSICartoDBSink extends NGSISink {
                 
                 if (!NGSIUtils.getLocation(attrValue, attrType, attrMetadata, flipCoordinates).startsWith(
                         "ST_SetSRID(ST_MakePoint(")) {
-                    aggregation.put(attrName, new ArrayList<String>());
-                    aggregation.put(attrName + "_md", new ArrayList<String>());
+                    Mapping mapping = null;
+                    
+                    if (attributeMappings != null) {
+                        mapping = attributeMappings.getMapping(entityId, entityType, attrName, attrType);
+                    } // if
+                    
+                    if (mapping == null) {
+                        aggregation.put(attrName, new ArrayList<String>());
+                        aggregation.put(attrName + "_md", new ArrayList<String>());
+                        fieldTypes.put(attrName, "text");
+                        fieldTypes.put(attrName + "_md", "text");
+                    } else {
+                        aggregation.put(mapping.getNewAttrName(), new ArrayList<String>());
+                        aggregation.put(mapping.getNewAttrName() + "_md", new ArrayList<String>());
+                        fieldTypes.put(mapping.getNewAttrName(), mapping.getNewAttrType());
+                        fieldTypes.put(mapping.getNewAttrName() + "_md", "text");
+                    } // if else
                 } // if
             } // for
         } // initialize
@@ -439,8 +488,19 @@ public class NGSICartoDBSink extends NGSISink {
                 if (location.startsWith("ST_SetSRID(ST_MakePoint(")) {
                     aggregation.get(NGSIConstants.THE_GEOM).add(location);
                 } else {
-                    aggregation.get(attrName).add(attrValue);
-                    aggregation.get(attrName + "_md").add(attrMetadata);
+                    Mapping mapping = null;
+                    
+                    if (attributeMappings != null) {
+                        mapping = attributeMappings.getMapping(entityId, entityType, attrName, attrType);
+                    } // if
+                    
+                    if (mapping == null) {
+                        aggregation.get(attrName).add(attrValue);
+                        aggregation.get(attrName + "_md").add(attrMetadata);
+                    } else {
+                        aggregation.get(mapping.getNewAttrName()).add(attrValue);
+                        aggregation.get(mapping.getNewAttrName() + "_md").add(attrMetadata);
+                    } // if else
                 } // if else
             } // for
         } // aggregate
@@ -452,10 +512,12 @@ public class NGSICartoDBSink extends NGSISink {
         String tableName = aggregator.getTableName(); // enable_lowercase is unncessary, PostgreSQL is case insensitive
         String schema = aggregator.getSchemaName();
         String withs = "";
+        String typedFields = aggregator.getTypedFields();
         String fields = aggregator.getFields();
         String rows = aggregator.getRows();
         LOGGER.info("[" + this.getName() + "] Persisting data at NGSICartoDBSink. Schema (" + schema
                 + "), Table (" + tableName + "), Data (" + rows + ")");
+        backends.get(schema).createTable(schema, tableName, typedFields);
         backends.get(schema).insert(schema, tableName, withs, fields, rows);
     } // persistRawAggregation
     
