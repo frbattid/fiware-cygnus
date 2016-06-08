@@ -19,6 +19,7 @@
 package com.telefonica.iot.cygnus.sinks;
 
 import com.telefonica.iot.cygnus.backends.postgresql.PostgreSQLBackendImpl;
+import com.telefonica.iot.cygnus.containers.AttributeMappings.Mapping;
 import com.telefonica.iot.cygnus.containers.NotifyContextRequest.ContextAttribute;
 import com.telefonica.iot.cygnus.containers.NotifyContextRequest.ContextElement;
 import com.telefonica.iot.cygnus.errors.CygnusBadConfiguration;
@@ -407,7 +408,7 @@ public class NGSIPostgreSQLSink extends NGSISink {
         public void initialize(NGSIEvent cygnusEvent) throws Exception {
             super.initialize(cygnusEvent);
 
-            // particulat initialization
+            // particular initialization
             typedFieldNames = "(" + NGSIConstants.RECV_TIME + " text,"
                     + NGSIConstants.FIWARE_SERVICE_PATH + " text,"
                     + NGSIConstants.ENTITY_ID + " text,"
@@ -418,7 +419,10 @@ public class NGSIPostgreSQLSink extends NGSISink {
                     + NGSIConstants.ENTITY_TYPE;
 
             // iterate on all this context element attributes, if there are attributes
-            ArrayList<ContextAttribute> contextAttributes = cygnusEvent.getContextElement().getAttributes();
+            ContextElement contextElement = cygnusEvent.getContextElement();
+            String entityId = contextElement.getId();
+            String entityType = contextElement.getType();
+            ArrayList<ContextAttribute> contextAttributes = contextElement.getAttributes();
 
             if (contextAttributes == null || contextAttributes.isEmpty()) {
                 return;
@@ -426,8 +430,22 @@ public class NGSIPostgreSQLSink extends NGSISink {
 
             for (ContextAttribute contextAttribute : contextAttributes) {
                 String attrName = contextAttribute.getName();
-                typedFieldNames += "," + attrName + " text," + attrName + "_md text";
-                fieldNames += "," + attrName + "," + attrName + "_md";
+                String attrType = contextAttribute.getType();
+                Mapping mapping = null;
+                
+                if (attributeMappings != null) {
+                    mapping = attributeMappings.getMapping(entityId, entityType, attrName, attrType);
+                } // if
+                
+                if (mapping == null) {
+                    typedFieldNames += "," + attrName + " text," + attrName + "_md text";
+                    fieldNames += "," + attrName + "," + attrName + "_md";
+                } else {
+                    String mappedAttrName = mapping.getNewAttrName();
+                    String mappedAttrType = mapping.getNewAttrType();
+                    typedFieldNames += "," + mappedAttrName + " " + mappedAttrType + "," + mappedAttrName + "_md text";
+                    fieldNames += "," + mappedAttrName + "," + mappedAttrName + "_md";
+                } // if else
             } // for
 
             typedFieldNames += ")";
@@ -498,14 +516,9 @@ public class NGSIPostgreSQLSink extends NGSISink {
         LOGGER.info("[" + this.getName() + "] Persisting data at OrionPostgreSQLSink. Schema ("
                 + schemaName + "), Table (" + tableName + "), Fields (" + fieldNames + "), Values ("
                 + fieldValues + ")");
-
-        // creating the database and the table has only sense if working in row mode, in column node
-        // everything must be provisioned in advance
-        if (aggregator instanceof RowAggregator) {
-            persistenceBackend.createSchema(schemaName);
-            persistenceBackend.createTable(schemaName, tableName, typedFieldNames);
-        } // if
-
+        
+        persistenceBackend.createSchema(schemaName);
+        persistenceBackend.createTable(schemaName, tableName, typedFieldNames);
         persistenceBackend.insertContextData(schemaName, tableName, fieldNames, fieldValues);
     } // persistAggregation
 
