@@ -19,6 +19,10 @@
 package com.telefonica.iot.cygnus.sinks;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.telefonica.iot.cygnus.containers.AttributeMappings;
+import com.telefonica.iot.cygnus.containers.AttributeMappings.AttributeMapping;
 import com.telefonica.iot.cygnus.containers.NotifyContextRequest;
 import com.telefonica.iot.cygnus.containers.NotifyContextRequest.ContextAttribute;
 import com.telefonica.iot.cygnus.containers.NotifyContextRequest.ContextElement;
@@ -35,6 +39,7 @@ import static com.telefonica.iot.cygnus.sinks.Enums.DataModel.DMBYSERVICE;
 import static com.telefonica.iot.cygnus.sinks.Enums.DataModel.DMBYSERVICEPATH;
 import java.util.Map;
 import com.telefonica.iot.cygnus.utils.CommonConstants;
+import com.telefonica.iot.cygnus.utils.JsonUtils;
 import com.telefonica.iot.cygnus.utils.NGSIConstants;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,6 +81,7 @@ public abstract class NGSISink extends CygnusSink implements Configurable {
     protected int batchTimeout;
     protected int batchTTL;
     protected boolean enableLowercase;
+    protected AttributeMappings attributeMappings;
     protected boolean invalidConfiguration;
     // accumulator utility
     private final Accumulator accumulator;
@@ -225,7 +231,56 @@ public abstract class NGSISink extends CygnusSink implements Configurable {
             LOGGER.debug("[" + this.getName() + "] Reading configuration (batch_ttl="
                     + batchTTL + ")");
         } // if else
+        
+        String attributeMappingsStr = context.getString("attribute_mappings");
+        
+        if (attributeMappingsStr != null && !attributeMappingsStr.isEmpty()) {
+            attributeMappings = readAttributeMappings(attributeMappingsStr);
+            LOGGER.debug("[" + this.getName() + "] Reading configuration (attribute_mappings="
+                + attributeMappingsStr + ")");
+        } else {
+            attributeMappings = null;
+        } // if else
     } // configure
+    
+    private AttributeMappings readAttributeMappings(String confFileName) {
+        // Read the Json string from the configuration file
+        String jsonStr;
+        
+        try {
+            jsonStr = JsonUtils.readJsonFile(confFileName);
+            LOGGER.debug("[" + this.getName() + "] Reading attribute mappings, Json read: " + jsonStr);
+        } catch (Exception e) {
+            LOGGER.error("Runtime error (" + e.getMessage() + ")");
+            return null;
+        } // try catch
+        
+        // Parse the Json string
+        AttributeMappings attrMaps;
+        Gson gson = new Gson();
+
+        try {
+            attrMaps = gson.fromJson(jsonStr, AttributeMappings.class);
+            LOGGER.debug("[" + this.getName() + "] Reading attribute mappings, Json parsed");
+        } catch (JsonIOException e) {
+            LOGGER.error("Runtime error (" + e.getMessage() + ")");
+            return null;
+        } catch (JsonSyntaxException e) {
+            LOGGER.error("Runtime error (" + e.getMessage() + ")");
+            return null;
+        } // try catch
+        
+        // Check if any of the mappings is not valid, e.g. some field is missing
+        attrMaps.purge();
+        LOGGER.debug("[" + this.getName() + "] Reading attribute mappings, Json purged");
+        
+        // Return the mappings
+        if (attrMaps.isEmpty()) {
+            return null;
+        } else {
+            return attrMaps;
+        } // if else
+    } // readAttributeMappings
 
     @Override
     public void start() {
